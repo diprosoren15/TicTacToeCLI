@@ -3,9 +3,7 @@ import java.util.Scanner;
 
 public class TicTacToe {
     Model model = new Model();
-
     private final Scanner scanner = new Scanner(System.in);
-
     @Nullable Integer getPlayerMove() {
         return 1;
     }
@@ -50,7 +48,7 @@ public class TicTacToe {
         while (true) {
             System.out.println(this.model.toString());
             Integer move = getMove();
-            if(move == null) {
+            if (move == null) {
                 System.out.println("Invalid Move. Please retry!");
                 continue;
             }
