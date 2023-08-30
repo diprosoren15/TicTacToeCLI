@@ -1,5 +1,5 @@
 # TicTacToeCLI
-A console/terminal based tic-tac-toe game implemented in Java.
+A console/terminal based tic-tac-toe game implemented in Java using MVC pattern.
 
 ## Prequisites
 Install java and maven.
