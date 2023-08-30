@@ -1,72 +1,99 @@
 package com.diprosoren15.app;
 
-import java.util.Scanner;
+import com.diprosoren15.app.engine.*;
 import com.diprosoren15.app.model.*;
 import com.diprosoren15.app.model.Model.*;
+import com.diprosoren15.app.view.View;
 
 public class App {
 
    Model model = new Model();
-   private final Scanner scanner = new Scanner(System.in);
+   View view = new View();
 
-   Integer getPlayerMove() {
-      return 1;
+   public void togglePlayer() {
+      switch (model.activePlayer) {
+         case X -> model.activePlayer = Move.O;
+         case O -> model.activePlayer = Move.X;
+      }
    }
 
-   Integer getComputerMove() {
-      return 2;
+   Square getPlayerSqr() {
+      view.log(model.activePlayer.toString() + "'s move: ");
+      while (true) {
+         String input = view.getInput();
+         Object result = parseAndValidate(input);
+         if (result instanceof Square) {
+            return (Square) result;
+         }
+         view.render((ValidationFlag) result);
+      }
    }
 
-   Integer getMove() {
+   Square getComputerSqr() {
+      int idx = Engine.minMax(model);
+      return new Square(idx);
+   }
+
+   Square getSquare() {
       return switch (model.activePlayer) {
-         case O -> getPlayerMove();
-         case X -> getComputerMove();
+         case O -> getPlayerSqr();
+         case X -> getPlayerSqr();
       };
    }
 
-   void playMove(Integer move) {
-      Move xo = switch (model.activePlayer) {
-         case X -> Move.X;
-         case O -> Move.O;
-      };
-      model.grid[move-1] = xo;
+   public Object parseAndValidate(String input) {
+      if (input == null || 
+          input.isEmpty() ||
+          input.isBlank()) {
+         return ValidationFlag.EmptyPosition;
+      } 
+      
+      int i;
+      try {
+         i = Integer.parseInt(input);
+      } catch (NumberFormatException e) {
+         return ValidationFlag.CantConvertToNumber;
+      }
+
+      if (i < 1 || i > 9) {
+         return ValidationFlag.InvalidPosition;
+      }
+
+      if (model.moveAt(i) != null) {
+         return ValidationFlag.PositionAlreadyPlayed;
+      }
+      
+      return new Square(i);
    }
 
-   boolean checkDraw() {
-      return false;
-   }
-
-   boolean checkWin() {
-      return false;
+   void fillSquare(Square sqr) {
+      model.grid[sqr.idx-1] = model.activePlayer;
    }
 
    Outcome checkOutcome() {
-      if (checkWin()) {
+      if (Engine.checkWin(model)) {
          return Outcome.WIN;
       }
-      if (checkDraw()) {
+      if (Engine.checkDraw(model)) {
          return Outcome.DRAW;
       }
       return null;
    }
 
-   void run() {
-      System.out.println("WELCOME TO TIC TAC TOE");
-
+   public void run() {
       while (true) {
-         System.out.println(this.model.toString());
-         Integer move = getMove();
-         if (move == null) {
-            System.out.println("Invalid Move. Please retry!");
-            continue;
-         }
-         playMove(move);            
+         view.render(model);
+         Square sqr = getSquare();
+         fillSquare(sqr);
          Outcome outcome = checkOutcome();
          if (outcome != null) {
-            System.out.println(outcome.toString(model.activePlayer));
+            view.clear();
+            view.render(model);
+            view.render(outcome, model.activePlayer);
             break;
          }
-         model.togglePlayer();
+         togglePlayer();
+         view.clear();
       }
    }
 
